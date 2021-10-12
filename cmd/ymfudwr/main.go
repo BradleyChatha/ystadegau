@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/golang-migrate/migrate/v4"
 
 	_ "github.com/lib/pq"
@@ -46,9 +47,9 @@ type PackageInfo struct {
 }
 
 func main() {
-	// runtime.Start(handleRequest)
-	_, err := handleRequest(context.TODO(), nil)
-	log.Fatal(err)
+	runtime.Start(handleRequest)
+	// _, err := handleRequest(context.TODO(), nil)
+	// log.Fatal(err)
 }
 
 func handleRequest(ctx context.Context, event interface{}) (string, error) {
