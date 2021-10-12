@@ -54,6 +54,10 @@ kind: pipeline
 type: exec
 name: Migrate
 
+platform:
+  os: linux
+  arсh: amd64
+
 steps:
   - name: Migrate
     environment:
