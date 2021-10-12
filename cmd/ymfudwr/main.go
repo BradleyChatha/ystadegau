@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -82,10 +80,13 @@ func init() {
 }
 
 func main() {
-	runtime.Start(handleRequest)
+	err := run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func handleRequest(ctx context.Context, event interface{}) (string, error) {
+func run() error {
 	log.Print("handleRequest")
 	db := os.Getenv("DB_DB")
 	ssl := os.Getenv("DB_SSL")
@@ -100,15 +101,15 @@ func handleRequest(ctx context.Context, event interface{}) (string, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", user, pass, host, db, ssl)
 	m, err := migrate.New("file://ymfudiadau/", connStr)
 	if err != nil {
-		return "", err
+		return err
 	}
 	log.Print("Created migrator")
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		return "", err
+		return err
 	}
 	log.Print("Migrated")
 
-	return "Success", nil
+	return nil
 }
