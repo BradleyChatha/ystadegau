@@ -44,8 +44,11 @@ steps:
         from_secret: AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
+      PROSTAGMA_SECRET:
+        from_secret: PROSTAGMA_SECRET
     commands:
       - aws s3api put-object --bucket-name bradley-chatha --key artifacts/gwyliwr_dist.zip --body ./gwyliwr.zip
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"secret\": \"$PROSTAGMA_SECRET\", \"trigger\": \"gwyliwr\"}' https://prostagma.chatha.dev/trigger"
     when:
       branch:
         - master
@@ -87,8 +90,11 @@ steps:
         from_secret: AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
+      PROSTAGMA_SECRET:
+        from_secret: PROSTAGMA_SECRET
     commands:
-      - aws s3api put-object --bucket-name bradley-chatha --key artifacts/ymfudwr_dist.zip --body ./ymfudwr.zip
+      - aws s3api put-object --bucket bradley-chatha --key artifacts/ymfudwr_dist.zip --body ./ymfudwr.zip
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"secret\": \"$PROSTAGMA_SECRET\", \"trigger\": \"ymfudwr\"}' https://prostagma.chatha.dev/trigger"
     when:
       branch:
         - master
