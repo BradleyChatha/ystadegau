@@ -1,5 +1,5 @@
 cd ../..
-sh test-migrations.sh
+sh ./test-migrations.sh
 cd cmd/gwyliwr
 export DB_HOST=localhost
 export DB_PORT=5432

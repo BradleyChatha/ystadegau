@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	runtime "github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/PuerkitoBio/goquery"
 	_ "github.com/lib/pq"
@@ -47,6 +50,8 @@ type PackageInfo struct {
 	Readme  string `json:"readme"`
 }
 
+var conn *sql.DB
+
 func main() {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
@@ -82,11 +87,11 @@ func main() {
 	} else if db == "" {
 		logger.Fatal("Missing DB_DB env var")
 	} else if ssl == "" {
-		ssl = "required"
+		ssl = "require"
 	}
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, pass, db, ssl)
-	conn, err := sql.Open("postgres", connStr)
+	conn, err = sql.Open("postgres", connStr)
 	if err != nil {
 		logger.Fatal("Could not connect to database", zap.Error(err))
 	}
@@ -94,12 +99,19 @@ func main() {
 	if err != nil {
 		logger.Fatal("Could not connect to database", zap.Error(err))
 	}
+	defer conn.Close()
 
 	if mode == "test" {
 		doTest(conn)
 	} else if mode == "test-live" {
 		doLiveTest(conn)
+	} else {
+		runtime.Start(handleRequest)
 	}
+}
+
+func handleRequest(ctx context.Context, event interface{}) (string, error) {
+	return "", nil
 }
 
 func doTest(conn *sql.DB) {

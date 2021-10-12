@@ -1,0 +1,68 @@
+---
+kind: pipeline
+type: docker
+name: Gwyliwr
+
+steps:
+  # - name: Test
+  #   image: golang:alpine
+  #   commands:
+  #     - apk add --update --no-cache docker openrc
+  #     - service docker start
+  #     - cd cmd/gwyliwr
+  #     - sh ./test.sh
+  #   failure: ignore # Remove once docker-in-docker sorts it's shit out
+
+  - name: Build
+    image: golang:alpine
+    commands:
+      - cd cmd/gwyliwr
+      - export GOOS=linux
+      - export GOARCH=amd64
+      - export CGO_ENABLED=0
+      - go build .
+      - mv ./gwyliwr ./main
+      - chmod 0666 ./main
+      - cp ./main ../../
+
+  - name: Make Dist
+    image: alpine:latest
+    commands:
+      - apk add --update --no-cache zip
+      - zip gwyliwr.zip ./main
+      - chmod 0666 ./gwyliwr.zip
+    when:
+      branch:
+        - master
+    
+  - name: Deploy
+    image: amazon/aws-cli
+    environment:
+      AWS_ACCESS_KEY:
+        from_secret: AWS_ACCESS_KEY
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION:
+        from_secret: AWS_DEFAULT_REGION
+    commands:
+      - aws lambda update-function-code --function-name=gwyliwr --zip-file=fileb://./gwyliwr.zip
+    when:
+      branch:
+        - master
+---
+kind: pipeline
+type: docker
+name: Gwyliwr
+
+steps:
+  - name: Migrate
+    image: docker
+    environment:
+      DB:
+        from_secret: MIGRATE_DB_STRING
+    commands:
+      - sh ./migrate.sh $MIGRATE_DB_STRING
+
+trigger:
+  branch:
+    - master
