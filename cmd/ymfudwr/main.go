@@ -52,7 +52,14 @@ var user string
 var pass string
 
 func init() {
-	sesh := ssm.New(session.New())
+	ses, err := session.NewSession(&aws.Config{
+		Region: aws.String("eu-west-2"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sesh := ssm.New(ses)
 	ssmhost, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name: aws.String("db_url"),
 	})
