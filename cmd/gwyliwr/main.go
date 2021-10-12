@@ -11,7 +11,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
 	runtime "github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/PuerkitoBio/goquery"
 	_ "github.com/lib/pq"
@@ -110,8 +112,18 @@ func main() {
 	}
 }
 
-func handleRequest(ctx context.Context, event interface{}) (string, error) {
-	return "", nil
+func handleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
+	for _, message := range event.Records {
+		command := message.MessageAttributes["Command"].StringValue
+		if command == aws.String("FetchPackageList") {
+			logger.Info("Updating package list")
+			err := updatePackageList(0, 5000)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	return "Success", nil
 }
 
 func doTest(conn *sql.DB) {
@@ -147,6 +159,34 @@ func doLiveTest(conn *sql.DB) {
 	}
 	fmt.Printf("stats: %v\n", stats)
 	fmt.Printf("info: %v\n", info)
+}
+
+func updatePackageList(skip int, limit int) error {
+	resp, err := http.Get(fmt.Sprintf("https://code.dlang.org/?sort=registered&category=&skip=%d&limit=%d", skip, limit))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	listings, err := parsePackageListing(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	stmt, err := conn.Prepare("INSERT INTO package(name) VALUES (@name) ON CONFLICT DO NOTHING")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, listing := range listings {
+		_, err := stmt.Exec(sql.Named("name", listing.Name))
+		if err != nil {
+			logger.Error("Failed to add package into database", zap.String("package", listing.Name), zap.Error(err))
+		}
+	}
+
+	return nil
 }
 
 func getLatestVersion(pkg string) (string, error) {
