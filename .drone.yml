@@ -21,15 +21,14 @@ steps:
       - export GOARCH=amd64
       - export CGO_ENABLED=0
       - go build .
-      - mv ./gwyliwr ./main
-      - chmod 0666 ./main
-      - cp ./main ../../
+      - chmod 0666 ./gwyliwr
+      - cp ./gwyliwr ../../
 
   - name: Make Dist
     image: alpine:latest
     commands:
       - apk add --update --no-cache zip
-      - zip gwyliwr.zip ./main
+      - zip gwyliwr.zip ./gwyliwr
       - chmod 0666 ./gwyliwr.zip
     when:
       branch:
@@ -67,15 +66,14 @@ steps:
       - export GOARCH=amd64
       - export CGO_ENABLED=0
       - go build .
-      - mv ./ymfudwr ./main
-      - chmod 0666 ./main
-      - cp ./main ../../
+      - chmod 0666 ./ymfudwr
+      - cp ./ymfudwr ../../
 
   - name: Make Dist
     image: alpine:latest
     commands:
       - apk add --update --no-cache zip
-      - zip -r ymfudwr.zip ./main ./ymfudiadau
+      - zip -r ymfudwr.zip ./ymfudwr ./ymfudiadau
       - chmod 0666 ./ymfudwr.zip
     when:
       branch:
