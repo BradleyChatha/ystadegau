@@ -49,3 +49,46 @@ steps:
     when:
       branch:
         - master
+
+---
+kind: pipeline
+type: docker
+name: ymfudwr
+
+steps:
+  - name: Build
+    image: golang:alpine
+    commands:
+      - cd cmd/ymfudwr
+      - export GOOS=linux
+      - export GOARCH=amd64
+      - export CGO_ENABLED=0
+      - go build .
+      - mv ./ymfudwr ./main
+      - chmod 0666 ./main
+      - cp ./main ../../
+
+  - name: Make Dist
+    image: alpine:latest
+    commands:
+      - apk add --update --no-cache zip
+      - zip ymfudwr.zip ./main ./ymfudiadau
+      - chmod 0666 ./ymfudwr.zip
+    when:
+      branch:
+        - master
+    
+  - name: Deploy
+    image: amazon/aws-cli
+    environment:
+      AWS_ACCESS_KEY:
+        from_secret: AWS_ACCESS_KEY
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION:
+        from_secret: AWS_DEFAULT_REGION
+    commands:
+      - aws lambda update-function-code --function-name=ymfudwr --zip-file=fileb://./ymfudwr.zip
+    when:
+      branch:
+        - master
