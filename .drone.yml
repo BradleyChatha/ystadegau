@@ -72,7 +72,7 @@ steps:
     image: alpine:latest
     commands:
       - apk add --update --no-cache zip
-      - zip ymfudwr.zip ./main ./ymfudiadau
+      - zip -r ymfudwr.zip ./main ./ymfudiadau
       - chmod 0666 ./ymfudwr.zip
     when:
       branch:

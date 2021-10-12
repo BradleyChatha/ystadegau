@@ -47,9 +47,10 @@ type PackageInfo struct {
 }
 
 func main() {
+	m, err := handleRequest(context.TODO(), nil)
+	print(m)
+	log.Fatal(err)
 	runtime.Start(handleRequest)
-	// _, err := handleRequest(context.TODO(), nil)
-	// log.Fatal(err)
 }
 
 func handleRequest(ctx context.Context, event interface{}) (string, error) {
