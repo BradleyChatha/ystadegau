@@ -54,19 +54,23 @@ var user string
 var pass string
 
 func init() {
+	log.Print("Init")
 	sesh := ssm.New(session.New())
+	log.Print("Made session")
 	ssmhost, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name: aws.String("db_url"),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Got db_url")
 	ssmuser, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name: aws.String("db_lambda_user"),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Got db_lambda_user")
 	ssmpass, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name:           aws.String("db_lambda_pass"),
 		WithDecryption: aws.Bool(true),
@@ -74,10 +78,12 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("Got db_lambda_pass")
 
 	host = *ssmhost.Parameter.Value
 	user = *ssmuser.Parameter.Value
 	pass = *ssmpass.Parameter.Value
+	log.Print("Finish init")
 }
 
 func main() {
@@ -85,6 +91,7 @@ func main() {
 }
 
 func handleRequest(ctx context.Context, event interface{}) (string, error) {
+	log.Print("handleRequest")
 	db := os.Getenv("DB_DB")
 	ssl := os.Getenv("DB_SSL")
 
@@ -94,16 +101,19 @@ func handleRequest(ctx context.Context, event interface{}) (string, error) {
 		ssl = "require"
 	}
 
+	log.Print("Got env vars")
 	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", user, pass, host, db, ssl)
 	m, err := migrate.New("file://ymfudiadau/", connStr)
 	if err != nil {
 		return "", err
 	}
+	log.Print("Created migrator")
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return "", err
 	}
+	log.Print("Migrated")
 
 	return "Success", nil
 }
