@@ -8,6 +8,9 @@ import (
 	"time"
 
 	runtime "github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/golang-migrate/migrate/v4"
 
 	_ "github.com/lib/pq"
@@ -46,33 +49,52 @@ type PackageInfo struct {
 	Readme  string `json:"readme"`
 }
 
+var host string
+var user string
+var pass string
+
+func init() {
+	sesh := ssm.New(session.New())
+	ssmhost, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name: aws.String("db_url"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ssmuser, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name: aws.String("db_lambda_user"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ssmpass, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name:           aws.String("db_lambda_pass"),
+		WithDecryption: aws.Bool(true),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	host = *ssmhost.Parameter.Value
+	user = *ssmuser.Parameter.Value
+	pass = *ssmpass.Parameter.Value
+}
+
 func main() {
 	runtime.Start(handleRequest)
 }
 
 func handleRequest(ctx context.Context, event interface{}) (string, error) {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASS")
 	db := os.Getenv("DB_DB")
 	ssl := os.Getenv("DB_SSL")
 
-	if host == "" {
-		log.Fatal("Missing DB_HOST env var")
-	} else if port == "" {
-		log.Fatal("Missing DB_PORT env var")
-	} else if user == "" {
-		log.Fatal("Missing DB_USER env var")
-	} else if pass == "" {
-		log.Fatal("Missing DB_PASS env var")
-	} else if db == "" {
-		log.Fatal("Missing DB_DB env var")
+	if db == "" {
+		db = "dubstats"
 	} else if ssl == "" {
 		ssl = "require"
 	}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, pass, host, port, db, ssl)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", user, pass, host, db, ssl)
 	m, err := migrate.New("file://ymfudiadau/", connStr)
 	if err != nil {
 		return "", err
