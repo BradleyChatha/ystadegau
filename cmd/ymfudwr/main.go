@@ -75,7 +75,7 @@ func handleRequest(ctx context.Context, event interface{}) (string, error) {
 	}
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, pass, host, port, db, ssl)
-	m, err := migrate.New("file://./ymfudiadau/", connStr)
+	m, err := migrate.New("file://ymfudiadau/", connStr)
 	if err != nil {
 		return "", err
 	}
