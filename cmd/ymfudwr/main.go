@@ -47,9 +47,6 @@ type PackageInfo struct {
 }
 
 func main() {
-	m, err := handleRequest(context.TODO(), nil)
-	print(m)
-	log.Fatal(err)
 	runtime.Start(handleRequest)
 }
 
