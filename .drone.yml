@@ -49,23 +49,3 @@ steps:
     when:
       branch:
         - master
----
-kind: pipeline
-type: exec
-name: Migrate
-
-platform:
-  os: linux
-  arсh: amd64
-
-steps:
-  - name: Migrate
-    environment:
-      DB:
-        from_secret: MIGRATE_DB_STRING
-    commands:
-      - sh ./migrate.sh $MIGRATE_DB_STRING
-
-trigger:
-  branch:
-    - master
