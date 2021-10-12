@@ -51,12 +51,11 @@ steps:
         - master
 ---
 kind: pipeline
-type: docker
-name: Gwyliwr
+type: exec
+name: Migrate
 
 steps:
   - name: Migrate
-    image: docker
     environment:
       DB:
         from_secret: MIGRATE_DB_STRING
