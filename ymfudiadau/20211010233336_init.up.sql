@@ -42,7 +42,7 @@ AS $$
 $$
 LANGUAGE SQL;
 
-CREATE FUNCTION search_packages(in query text) RETURNS TABLE(id int, name text, rank int)
+CREATE FUNCTION search_packages(in query text) RETURNS TABLE(id int, name text, rank real)
 AS $$
     SELECT id, name, ts_rank_cd(query_vector, to_tsquery(query)) AS rank 
     FROM package 
