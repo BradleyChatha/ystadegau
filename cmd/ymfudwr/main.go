@@ -7,9 +7,11 @@ import (
 	"time"
 
 	runtime "github.com/aws/aws-lambda-go/lambda"
-	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/v4"
 
 	_ "github.com/lib/pq"
+
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"go.uber.org/zap"
 )
 
