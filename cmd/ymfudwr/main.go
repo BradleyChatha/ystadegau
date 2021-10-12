@@ -54,9 +54,7 @@ var user string
 var pass string
 
 func init() {
-	log.Print("Init")
 	sesh := ssm.New(session.New())
-	log.Print("Made session")
 	ssmhost, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name: aws.String("db_url"),
 	})
@@ -70,7 +68,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print("Got db_lambda_user")
 	ssmpass, err := sesh.GetParameter(&ssm.GetParameterInput{
 		Name:           aws.String("db_lambda_pass"),
 		WithDecryption: aws.Bool(true),
@@ -78,12 +75,10 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Print("Got db_lambda_pass")
 
 	host = *ssmhost.Parameter.Value
 	user = *ssmuser.Parameter.Value
 	pass = *ssmpass.Parameter.Value
-	log.Print("Finish init")
 }
 
 func main() {

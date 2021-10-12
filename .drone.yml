@@ -45,7 +45,7 @@ steps:
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
     commands:
-      - aws lambda update-function-code --function-name=gwyliwr --zip-file=fileb://./gwyliwr.zip
+      - aws s3api put-object --bucket-name bradley-chatha --key artifacts/gwyliwr_dist.zip --body ./gwyliwr.zip
     when:
       branch:
         - master
@@ -88,7 +88,7 @@ steps:
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
     commands:
-      - aws lambda update-function-code --function-name=ymfudwr --zip-file=fileb://./ymfudwr.zip
+      - aws s3api put-object --bucket-name bradley-chatha --key artifacts/ymfudwr_dist.zip --body ./ymfudwr.zip
     when:
       branch:
         - master
