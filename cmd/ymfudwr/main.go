@@ -3,19 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
-	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/golang-migrate/migrate/v4"
 
 	_ "github.com/lib/pq"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"go.uber.org/zap"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
-
-var logger *zap.Logger
 
 type Listing struct {
 	Name       string
@@ -48,7 +46,9 @@ type PackageInfo struct {
 }
 
 func main() {
-	runtime.Start(handleRequest)
+	// runtime.Start(handleRequest)
+	_, err := handleRequest(context.TODO(), nil)
+	log.Fatal(err)
 }
 
 func handleRequest(ctx context.Context, event interface{}) (string, error) {
@@ -60,15 +60,15 @@ func handleRequest(ctx context.Context, event interface{}) (string, error) {
 	ssl := os.Getenv("DB_SSL")
 
 	if host == "" {
-		logger.Fatal("Missing DB_HOST env var")
+		log.Fatal("Missing DB_HOST env var")
 	} else if port == "" {
-		logger.Fatal("Missing DB_PORT env var")
+		log.Fatal("Missing DB_PORT env var")
 	} else if user == "" {
-		logger.Fatal("Missing DB_USER env var")
+		log.Fatal("Missing DB_USER env var")
 	} else if pass == "" {
-		logger.Fatal("Missing DB_PASS env var")
+		log.Fatal("Missing DB_PASS env var")
 	} else if db == "" {
-		logger.Fatal("Missing DB_DB env var")
+		log.Fatal("Missing DB_DB env var")
 	} else if ssl == "" {
 		ssl = "require"
 	}
