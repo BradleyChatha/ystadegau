@@ -159,7 +159,10 @@ func run() {
 			logger.Error("Issue recieving message", zap.Error(err))
 			return
 		}
-		logger.Info("RecievedMessage() succesful")
+
+		if len(msgs.Messages) == 0 {
+			continue
+		}
 
 		for _, msg := range msgs.Messages {
 			var info SQSRaw
