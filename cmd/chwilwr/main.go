@@ -65,25 +65,23 @@ func init() {
 	}
 }
 
+//
 type QueryResult struct {
 	Id   int     `json:"id"`
 	Name string  `json:"string"`
 	Rank float64 `json:"rank"`
 }
 
-type QueryRequest struct {
-	Query string `json:"query"`
-}
-
+//
 type StatsResult struct {
 	Time             time.Time `json:"time"`
 	DownloadsWeekly  int       `json:"downloadsWeekly"`
 	DownloadsMonthly int       `json:"downloadsMonthly"`
 	DownloadsTotal   int       `json:"downloadsTotal"`
-	Stars            int       `json:stars`
-	Watchers         int       `json:watchers`
-	Issues           int       `json:issues`
-	Forks            int       `json:forks`
+	Stars            int       `json:"stars"`
+	Watchers         int       `json:"watchers"`
+	Issues           int       `json:"issues"`
+	Forks            int       `json:"forks"`
 }
 
 func main() {
