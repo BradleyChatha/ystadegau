@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 )
 
@@ -98,7 +99,11 @@ func httpMain() {
 	r := mux.NewRouter()
 	r.Path("/search").Methods("GET").Queries("query", "{query}").HandlerFunc(doSearch)
 	r.Path("/stats").Methods("GET").Queries("package", "{package}", "weeks", "{weeks}").HandlerFunc(doStats)
-	http.ListenAndServe(":5678", r)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	})
+	http.ListenAndServe(":5678", c.Handler(r))
 }
 
 func doSearch(w http.ResponseWriter, r *http.Request) {
