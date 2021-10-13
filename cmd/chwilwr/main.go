@@ -86,7 +86,7 @@ func main() {
 func httpMain() {
 	r := mux.NewRouter()
 	r.Path("/search").Methods("GET").Queries("query", "{query}").HandlerFunc(doSearch)
-	http.Handle("/", r)
+	http.ListenAndServe(":5678", r)
 }
 
 func doSearch(w http.ResponseWriter, r *http.Request) {
