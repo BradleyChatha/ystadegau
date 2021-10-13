@@ -157,7 +157,7 @@ func run() {
 		})
 		if err != nil {
 			logger.Error("Issue recieving message", zap.Error(err))
-			continue
+			return
 		}
 		logger.Info("RecievedMessage() succesful")
 
