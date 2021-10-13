@@ -177,7 +177,7 @@ func run() {
 
 			switch info.Command {
 			case "update_package_list":
-				err = updatePackageList(0, 10000) // Note: update_package_list only occurs once per month.
+				err = updatePackageList(0, 10_000) // Note: update_package_list only occurs once per month.
 				if err != nil {
 					logger.Error("Error refreshing package list", zap.Error(err))
 					success = false
@@ -244,6 +244,7 @@ func updatePackages() error {
 	}
 	defer rows.Close()
 	for rows.Next() {
+		time.Sleep(time.Second * 5)
 		var id int
 		var name string
 		err = rows.Scan(&id, &name)
@@ -323,6 +324,7 @@ func updatePackageList(skip int, limit int) error {
 		if err != nil {
 			logger.Error("Failed to add package into database", zap.String("package", listing.Name), zap.Error(err))
 		}
+		logger.Info("Added package", zap.String("package", listing.Name))
 	}
 
 	logger.Info("Packages list has been refreshed.")
@@ -381,7 +383,7 @@ func parsePackageListing(listing io.Reader) ([]Listing, error) {
 			logger.Error("Error parsing a date", zap.Error(err))
 			return
 		}
-		arr = append(arr, Listing{Name: a.Text(), Registered: time})
+		arr = append(arr, Listing{Name: a.Nodes[0].FirstChild.Data, Registered: time})
 	})
 
 	return arr, nil
