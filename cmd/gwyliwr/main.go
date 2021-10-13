@@ -55,8 +55,8 @@ type PackageInfo struct {
 }
 
 type SQSRaw struct {
-	command string
-	args    json.RawMessage
+	Command string          `json:"command"`
+	Args    json.RawMessage `json:"args"`
 }
 
 var conn *sql.DB
@@ -171,16 +171,16 @@ func run() {
 				logger.Error("Error deserialising message", zap.Error(err))
 				continue
 			}
-			logger.Info("Recieved command", zap.String("command", info.command))
+			logger.Info("Recieved command", zap.String("command", info.Command))
 
-			switch info.command {
+			switch info.Command {
 			case "update_package_list":
 				err = updatePackageList(0, 1000)
 				if err != nil {
 					logger.Error("Error refreshing package list", zap.Error(err))
 				}
 			default:
-				logger.Error("Invalid command", zap.String("command", info.command))
+				logger.Error("Invalid command", zap.String("command", info.Command))
 			}
 		}
 	}
