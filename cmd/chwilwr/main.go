@@ -69,7 +69,7 @@ func init() {
 //
 type QueryResult struct {
 	Id   int     `json:"id"`
-	Name string  `json:"string"`
+	Name string  `json:"name"`
 	Rank float64 `json:"rank"`
 }
 
