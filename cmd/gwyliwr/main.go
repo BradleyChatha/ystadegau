@@ -2,18 +2,20 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/aws/aws-lambda-go/events"
-	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/ssm"
 
 	"github.com/PuerkitoBio/goquery"
 	_ "github.com/lib/pq"
@@ -52,13 +54,55 @@ type PackageInfo struct {
 	Readme  string `json:"readme"`
 }
 
+type SQSRaw struct {
+	command string
+	args    json.RawMessage
+}
+
 var conn *sql.DB
 
+var host string
+var user string
+var pass string
+var ses *session.Session
+
+func init() {
+	var err error
+	ses, err = session.NewSession(&aws.Config{
+		Region: aws.String("eu-west-2"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sesh := ssm.New(ses)
+	ssmhost, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name: aws.String("db_url"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Got db_url")
+	ssmuser, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name: aws.String("db_lambda_user"),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ssmpass, err := sesh.GetParameter(&ssm.GetParameterInput{
+		Name:           aws.String("db_lambda_pass"),
+		WithDecryption: aws.Bool(true),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	host = *ssmhost.Parameter.Value
+	user = *ssmuser.Parameter.Value
+	pass = *ssmpass.Parameter.Value
+}
+
 func main() {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	pass := os.Getenv("DB_PASS")
 	db := os.Getenv("DB_DB")
 	ssl := os.Getenv("DB_SSL")
 	mode := os.Getenv("MODE")
@@ -78,21 +122,13 @@ func main() {
 		return
 	}
 
-	if host == "" {
-		logger.Fatal("Missing DB_HOST env var")
-	} else if port == "" {
-		logger.Fatal("Missing DB_PORT env var")
-	} else if user == "" {
-		logger.Fatal("Missing DB_USER env var")
-	} else if pass == "" {
-		logger.Fatal("Missing DB_PASS env var")
-	} else if db == "" {
-		logger.Fatal("Missing DB_DB env var")
+	if db == "" {
+		db = "dubstats"
 	} else if ssl == "" {
 		ssl = "require"
 	}
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, pass, db, ssl)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", strings.Split(host, ":")[0], strings.Split(host, ":")[1], user, pass, db, ssl)
 	conn, err = sql.Open("postgres", connStr)
 	if err != nil {
 		logger.Fatal("Could not connect to database", zap.Error(err))
@@ -108,22 +144,43 @@ func main() {
 	} else if mode == "test-live" {
 		doLiveTest(conn)
 	} else {
-		runtime.Start(handleRequest)
+		run()
 	}
 }
 
-func handleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
-	for _, message := range event.Records {
-		command := message.MessageAttributes["Command"].StringValue
-		if command == aws.String("FetchPackageList") {
-			logger.Info("Updating package list")
-			err := updatePackageList(0, 5000)
+func run() {
+	sqsc := sqs.New(ses)
+	for {
+		msgs, err := sqsc.ReceiveMessage(&sqs.ReceiveMessageInput{
+			WaitTimeSeconds: aws.Int64(5),
+			QueueUrl:        aws.String("https://sqs.eu-west-2.amazonaws.com/563553540449/ystadegau"),
+		})
+		if err != nil {
+			logger.Error("Issue recieving message", zap.Error(err))
+			continue
+		}
+		logger.Info("RecievedMessage() succesful")
+
+		for _, msg := range msgs.Messages {
+			var info SQSRaw
+			err = json.Unmarshal([]byte(*msg.Body), &info)
 			if err != nil {
-				return "", err
+				logger.Error("Error deserialising message", zap.Error(err))
+				continue
+			}
+			logger.Info("Recieved command", zap.String("command", info.command))
+
+			switch info.command {
+			case "update_package_list":
+				err = updatePackageList(0, 1000)
+				if err != nil {
+					logger.Error("Error refreshing package list", zap.Error(err))
+				}
+			default:
+				logger.Error("Invalid command", zap.String("command", info.command))
 			}
 		}
 	}
-	return "Success", nil
 }
 
 func doTest(conn *sql.DB) {
@@ -173,7 +230,7 @@ func updatePackageList(skip int, limit int) error {
 		return err
 	}
 
-	stmt, err := conn.Prepare("INSERT INTO package(name) VALUES (@name) ON CONFLICT DO NOTHING")
+	stmt, err := conn.Prepare("INSERT INTO package(name, next_update) VALUES (@name, now()) ON CONFLICT DO NOTHING")
 	if err != nil {
 		return err
 	}
@@ -186,6 +243,7 @@ func updatePackageList(skip int, limit int) error {
 		}
 	}
 
+	logger.Info("Packages list has been refreshed.")
 	return nil
 }
 

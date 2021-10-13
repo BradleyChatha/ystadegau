@@ -94,7 +94,6 @@ func main() {
 }
 
 func run() error {
-	log.Print("handleRequest")
 	db := os.Getenv("DB_DB")
 	ssl := os.Getenv("DB_SSL")
 
@@ -104,13 +103,11 @@ func run() error {
 		ssl = "require"
 	}
 
-	log.Print("Got env vars")
 	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", user, pass, host, db, ssl)
 	m, err := migrate.New("file://ymfudiadau/", connStr)
 	if err != nil {
 		return err
 	}
-	log.Print("Created migrator")
 
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {

@@ -1,5 +1,5 @@
 CREATE TABLE package(
-    id              INTEGER PRIMARY KEY,
+    id              SERIAL PRIMARY KEY,
     name            VARCHAR(256) NOT NULL,
     query_vector    TSVECTOR,
     next_update     TIMESTAMP WITH TIME ZONE
@@ -8,7 +8,7 @@ CREATE INDEX ON package(name);
 CREATE INDEX ON package USING gin(query_vector);
 
 CREATE TABLE package_version(
-    id          INTEGER PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     package_id  INTEGER NOT NULL,
     semver      VARCHAR(128) NOT NULL,
 
@@ -16,7 +16,7 @@ CREATE TABLE package_version(
 );
 
 CREATE TABLE package_snapshot(
-    id                  INTEGER PRIMARY KEY,
+    id                  SERIAL PRIMARY KEY,
     package_version_id  INTEGER NOT NULL,
     time                TIMESTAMP WITH TIME ZONE NOT NULL,
     downloads_weekly    INTEGER NOT NULL,
