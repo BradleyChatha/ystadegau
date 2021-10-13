@@ -30,23 +30,28 @@ func renderDesired() {
 	vpc := aws.Network.Vpc(diagram.NodeLabel("VPC"))
 	nat := aws.Network.NatGateway(diagram.NodeLabel("NAT"))
 	rds := aws.Database.Rds(diagram.NodeLabel("Postgres"))
+	agw := aws.Network.ApiGateway(diagram.NodeLabel("Api Gateway"))
 
 	eb := aws.Integration.Eventbridge(diagram.NodeLabel("Event Bridge"))
 
 	l1 := aws.Compute.Lambda(diagram.NodeLabel("Ymfudwr"))
 	l2 := aws.Compute.Lambda(diagram.NodeLabel("Gwyliwr"))
+	l3 := aws.Compute.Lambda(diagram.NodeLabel("Chwilwr"))
 	lg := diagram.NewGroup("functions").
 		Label("Functions").
 		Add(
 			l1,
 			l2,
+			l3,
 		).
 		ConnectAllFrom(nat.ID(), diagram.Bidirectional()).
-		ConnectAllTo(rds.ID(), diagram.Forward()).
-		ConnectAllTo(eb.ID(), diagram.Bidirectional())
+		ConnectAllTo(rds.ID(), diagram.Forward())
 	d.
+		Connect(agw, l3, diagram.Bidirectional()).
+		Connect(l1, eb, diagram.Forward()).
+		Connect(l2, eb, diagram.Forward()).
 		Connect(vpc, nat, diagram.Bidirectional()).
-		Add(eb, rds).
+		Add(eb, rds, agw).
 		Group(lg)
 
 	err = d.Render()
@@ -63,7 +68,7 @@ func renderActual() {
 	igw := aws.Network.InternetGateway(diagram.NodeLabel("Gateway"))
 
 	eb := aws.Integration.Eventbridge(diagram.NodeLabel("Event Bridge"))
-	ec := aws.Compute.Ec2(diagram.NodeLabel("Ymfudwr & Gwyliwr"))
+	ec := aws.Compute.Ec2(diagram.NodeLabel("Ymfudwr & Gwyliwr & Chwilwr"))
 	d.
 		Connect(vpc, igw, diagram.Bidirectional()).
 		Connect(ec, igw, diagram.Bidirectional()).
