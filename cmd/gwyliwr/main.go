@@ -243,14 +243,14 @@ func updatePackageList(skip int, limit int) error {
 		return err
 	}
 
-	stmt, err := conn.Prepare("INSERT INTO package(name, next_update) VALUES (@name, now()) ON CONFLICT DO NOTHING")
+	stmt, err := conn.Prepare("INSERT INTO package(name, next_update) VALUES (?, now()) ON CONFLICT DO NOTHING")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
 	for _, listing := range listings {
-		_, err := stmt.Exec(sql.Named("name", listing.Name))
+		_, err := stmt.Exec(listing.Name)
 		if err != nil {
 			logger.Error("Failed to add package into database", zap.String("package", listing.Name), zap.Error(err))
 		}
