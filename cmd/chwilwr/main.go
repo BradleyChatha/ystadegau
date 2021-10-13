@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -69,8 +71,19 @@ type QueryResult struct {
 	Rank float64 `json:"rank"`
 }
 
-type Request struct {
+type QueryRequest struct {
 	Query string `json:"query"`
+}
+
+type StatsResult struct {
+	Time             time.Time `json:"time"`
+	DownloadsWeekly  int       `json:"downloadsWeekly"`
+	DownloadsMonthly int       `json:"downloadsMonthly"`
+	DownloadsTotal   int       `json:"downloadsTotal"`
+	Stars            int       `json:stars`
+	Watchers         int       `json:watchers`
+	Issues           int       `json:issues`
+	Forks            int       `json:forks`
 }
 
 func main() {
@@ -86,6 +99,7 @@ func main() {
 func httpMain() {
 	r := mux.NewRouter()
 	r.Path("/search").Methods("GET").Queries("query", "{query}").HandlerFunc(doSearch)
+	r.Path("/stats").Methods("GET").Queries("package", "{package}", "weeks", "{weeks}").HandlerFunc(doStats)
 	http.ListenAndServe(":5678", r)
 }
 
@@ -110,6 +124,51 @@ func doSearch(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		arr = append(arr, value)
+	}
+
+	bytes, _ := json.Marshal(arr)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
+}
+
+//
+func doStats(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	pkg := vars["package"]
+	weeks := vars["weeks"]
+	logger.Info("Stats", zap.String("package", pkg), zap.String("weeks", weeks), zap.String("ip", r.RemoteAddr))
+
+	weeksAsNum, err := strconv.Atoi(weeks)
+	if err != nil {
+		logger.Error("User provided a bad week value", zap.String("package", pkg), zap.String("weeks", weeks), zap.String("ip", r.RemoteAddr), zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	rows, err := conn.Query(`
+		SELECT time, downloads_weekly, downloads_monthly, downloads_total, stars, watchers, issues, forks FROM package_snapshot 
+		WHERE package_version_id = 
+			(
+				SELECT id FROM package_version 
+				WHERE package_id = $1
+			) 
+		AND time >= (now() - interval '1 day' * $2);`, pkg, weeksAsNum)
+	if err != nil {
+		logger.Error("Query failed", zap.String("package", pkg), zap.String("weeks", weeks), zap.String("ip", r.RemoteAddr), zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	arr := make([]StatsResult, 0, weeksAsNum)
+	for rows.Next() {
+		var value StatsResult
+		err = rows.Scan(&value.Time, &value.DownloadsWeekly, &value.DownloadsMonthly, &value.DownloadsTotal, &value.Stars, &value.Watchers, &value.Issues, &value.Forks)
+		if err != nil {
+			logger.Error("Error scanning row", zap.String("package", pkg), zap.String("weeks", weeks), zap.String("ip", r.RemoteAddr), zap.Error(err))
+			continue
+		}
 		arr = append(arr, value)
 	}
 
