@@ -173,14 +173,24 @@ func run() {
 			}
 			logger.Info("Recieved command", zap.String("command", info.Command))
 
+			success := true
+
 			switch info.Command {
 			case "update_package_list":
-				err = updatePackageList(0, 1000)
+				err = updatePackageList(0, 10)
 				if err != nil {
 					logger.Error("Error refreshing package list", zap.Error(err))
+					success = false
 				}
 			default:
 				logger.Error("Invalid command", zap.String("command", info.Command))
+			}
+
+			if success {
+				sqsc.DeleteMessage(&sqs.DeleteMessageInput{
+					QueueUrl:      aws.String("https://sqs.eu-west-2.amazonaws.com/563553540449/ystadegau"),
+					ReceiptHandle: msg.ReceiptHandle,
+				})
 			}
 		}
 	}
