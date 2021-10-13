@@ -152,7 +152,11 @@ func doStats(w http.ResponseWriter, r *http.Request) {
 		WHERE package_version_id = 
 			(
 				SELECT id FROM package_version 
-				WHERE package_id = $1
+				WHERE package_id = 
+				(
+					SELECT id FROM package
+					WHERE name = $1
+				)
 			) 
 		AND time >= (now() - interval '1 day' * $2);`, pkg, weeksAsNum)
 	if err != nil {
