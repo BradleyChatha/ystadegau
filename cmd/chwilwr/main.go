@@ -101,7 +101,7 @@ func doSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	arr := make([]QueryResult, 50)
+	arr := make([]QueryResult, 0, 50)
 	for rows.Next() {
 		var value QueryResult
 		err := rows.Scan(&value.Id, &value.Name, &value.Rank)
