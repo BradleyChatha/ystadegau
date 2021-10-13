@@ -243,7 +243,7 @@ func updatePackageList(skip int, limit int) error {
 		return err
 	}
 
-	stmt, err := conn.Prepare("INSERT INTO package(name, next_update) VALUES (?, now()) ON CONFLICT DO NOTHING")
+	stmt, err := conn.Prepare("INSERT INTO package(name, next_update) VALUES ($1, now()) ON CONFLICT DO NOTHING")
 	if err != nil {
 		return err
 	}
