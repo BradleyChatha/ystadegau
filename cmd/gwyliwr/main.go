@@ -295,8 +295,16 @@ func updatePackages() error {
 			stats.Repo.Forks,
 		)
 
-		conn.Exec("SELECT update_package_query_vectory($1, $2, $3);", id, "todo", info.Readme)
-		conn.Exec("SELECT bump_package_update_time($1);", id)
+		_, err = conn.Exec("SELECT * FROM update_package_query_vector($1, $2, $3);", id, "todo", info.Readme)
+		if err != nil {
+			logger.Error("Error update query vector", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+			continue
+		}
+		_, err = conn.Exec("SELECT bump_package_update_time($1);", id)
+		if err != nil {
+			logger.Error("Error bumping package time", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+			continue
+		}
 	}
 	return nil
 }
