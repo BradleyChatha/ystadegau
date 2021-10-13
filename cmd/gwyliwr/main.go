@@ -177,7 +177,7 @@ func run() {
 
 			switch info.Command {
 			case "update_package_list":
-				err = updatePackageList(0, 10)
+				err = updatePackageList(0, 10000) // Note: update_package_list only occurs once per month.
 				if err != nil {
 					logger.Error("Error refreshing package list", zap.Error(err))
 					success = false
