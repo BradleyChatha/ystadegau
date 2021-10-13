@@ -182,6 +182,12 @@ func run() {
 					logger.Error("Error refreshing package list", zap.Error(err))
 					success = false
 				}
+			case "update_packages":
+				err = updatePackages()
+				if err != nil {
+					logger.Error("Error updating packages", zap.Error(err))
+					success = false
+				}
 			default:
 				logger.Error("Invalid command", zap.String("command", info.Command))
 			}
@@ -229,6 +235,69 @@ func doLiveTest(conn *sql.DB) {
 	}
 	fmt.Printf("stats: %v\n", stats)
 	fmt.Printf("info: %v\n", info)
+}
+
+func updatePackages() error {
+	rows, err := conn.Query("SELECT id, name FROM package WHERE next_update < now();")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int
+		var name string
+		err = rows.Scan(&id, &name)
+		if err != nil {
+			logger.Error("Error fetching row", zap.Error(err))
+			continue
+		}
+		logger.Info("Updating package", zap.String("package", name))
+
+		ver, err := getLatestVersion(name)
+		if err != nil {
+			logger.Error("Error updating package", zap.String("package", name), zap.Error(err))
+			continue
+		}
+
+		row := conn.QueryRow("SELECT id FROM package_version WHERE package_id = $1 AND semver = $2", id, ver)
+		if row.Scan() == sql.ErrNoRows {
+			_, err = conn.Exec("INSERT INTO package_version(package_id, semver) VALUES($1, $2)", id, ver)
+			if err != nil {
+				logger.Error("Error updating package version", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+				continue
+			}
+			row = conn.QueryRow("SELECT id FROM package_version WHERE package_id = $1 AND semver = $2", id, ver)
+		}
+
+		var verid int
+		err = row.Scan(&verid)
+		if err != nil {
+			logger.Error("Error scanning version id", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+			continue
+		}
+
+		stats, info, err := getStatsAndInfo(name, ver)
+		if err != nil {
+			logger.Error("Error fetching latest stats", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+			continue
+		}
+
+		conn.Exec(
+			"INSERT INTO package_snapshot(package_version_id, time, downloads_weekly, downloads_monthly, downloads_total, stars, watchers, issues, forks) VALUES ($1, now(), $2, $3, $4, $5, $6, $7, $8)",
+			verid,
+			stats.Downloads.Weekly,
+			stats.Downloads.Monthly,
+			stats.Downloads.Total,
+			stats.Repo.Stars,
+			stats.Repo.Watchers,
+			stats.Repo.Issues,
+			stats.Repo.Forks,
+		)
+
+		conn.Exec("SELECT update_package_query_vectory($1, $2, $3);", id, "todo", info.Readme)
+		conn.Exec("SELECT bump_package_update_time($1);", id)
+	}
+	return nil
 }
 
 func updatePackageList(skip int, limit int) error {
