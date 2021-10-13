@@ -113,7 +113,8 @@ func doSearch(w http.ResponseWriter, r *http.Request) {
 		arr = append(arr, value)
 	}
 
+	bytes, _ := json.Marshal(arr)
 	w.WriteHeader(http.StatusOK)
-	bytes, err := json.Marshal(arr)
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(bytes)
 }
