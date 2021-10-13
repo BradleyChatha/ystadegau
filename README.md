@@ -1,5 +1,8 @@
 # Overview
 
+[![Build Status](https://ci.chatha.dev/api/badges/BradleyChatha/ystadegau/status.svg)](https://ci.chatha.dev/BradleyChatha/ystadegau)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d6046bd475c444438dd059fd1dfc0743)](https://app.codacy.com/gh/BradleyChatha/ystadegau?utm_source=github.com&utm_medium=referral&utm_content=BradleyChatha/ystadegau&utm_campaign=Badge_Grade_Settings)
+
 This is a micro service based application for monitoring, collecting, and displaying long-term stats for Dub packages.
 
 ## Why micro services?
@@ -18,6 +21,7 @@ Because I wanted to give my stalkers a nice confusing surprise :)
 * Gwyliwr (goo-lee-uhruh) (Welsh 'r' is rolled and pronounced, hence the "ruh" as an approximation) means "Watcher"
 * Ymfudwr (um-vuh-duhruh) means "Migrator"
 * Ymfudiadau (um-vuh-dee-ah-dah) means "Migrations"
+* Chwilwr means "Searcher"
 
 ... I think that's correct at least. Still not 100% sure if a leading "u" is pronounced or not.
 
