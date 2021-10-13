@@ -96,3 +96,48 @@ steps:
     when:
       branch:
         - master
+
+---
+kind: pipeline
+type: docker
+name: chwilwr
+
+steps:
+  - name: Build
+    image: golang:alpine
+    commands:
+      - cd cmd/chwilwr
+      - export GOOS=linux
+      - export GOARCH=amd64
+      - export CGO_ENABLED=0
+      - go build .
+      - chmod 0777 ./chwilwr
+      - cp ./chwilwr ../../
+
+  - name: Make Dist
+    image: alpine:latest
+    commands:
+      - apk add --update --no-cache zip
+      - zip -r chwilwr.zip ./chwilwr
+      - chmod 0777 ./chwilwr.zip
+    when:
+      branch:
+        - master
+    
+  - name: Deploy
+    image: amazon/aws-cli
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: AWS_ACCESS_KEY
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION:
+        from_secret: AWS_DEFAULT_REGION
+      PROSTAGMA_SECRET:
+        from_secret: PROSTAGMA_SECRET
+    commands:
+      - aws s3api put-object --bucket bradley-chatha --key artifacts/chwilwr_dist.zip --body ./chwilwr.zip
+      - "curl -X POST -H 'Content-Type: application/json' -d '{\"secret\": \"'\"$PROSTAGMA_SECRET\"'\", \"trigger\": \"chwilwr\"}' https://prostagma.chatha.dev/trigger"
+    when:
+      branch:
+        - master
