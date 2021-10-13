@@ -1,5 +1,7 @@
 # Overview
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d6046bd475c444438dd059fd1dfc0743)](https://app.codacy.com/gh/BradleyChatha/ystadegau?utm_source=github.com&utm_medium=referral&utm_content=BradleyChatha/ystadegau&utm_campaign=Badge_Grade_Settings)
+
 This is a micro service based application for monitoring, collecting, and displaying long-term stats for Dub packages.
 
 ## Why micro services?
