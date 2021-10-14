@@ -152,7 +152,7 @@ func run() {
 	sqsc := sqs.New(ses)
 	for {
 		msgs, err := sqsc.ReceiveMessage(&sqs.ReceiveMessageInput{
-			WaitTimeSeconds: aws.Int64(5),
+			WaitTimeSeconds: aws.Int64(60),
 			QueueUrl:        aws.String("https://sqs.eu-west-2.amazonaws.com/563553540449/ystadegau"),
 		})
 		if err != nil {

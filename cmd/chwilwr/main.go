@@ -136,7 +136,6 @@ func doSearch(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
-//
 func doStats(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pkg := vars["package"]
