@@ -192,7 +192,7 @@ func run() {
 				logger.Error("Invalid command", zap.String("command", info.Command))
 			}
 
-			if success || !success {
+			if success {
 				sqsc.DeleteMessage(&sqs.DeleteMessageInput{
 					QueueUrl:      aws.String("https://sqs.eu-west-2.amazonaws.com/563553540449/ystadegau"),
 					ReceiptHandle: msg.ReceiptHandle,
