@@ -1,4 +1,4 @@
-CREATE OR FUNCTION search_packages(in query text) RETURNS TABLE(id int, name text, rank real)
+CREATE OR REPLACE FUNCTION search_packages(in query text) RETURNS TABLE(id int, name text, rank real)
 AS $$
     SELECT DISTINCT ON (id)
         id, name, SUM(rank) AS rank
