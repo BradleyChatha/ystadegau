@@ -160,7 +160,7 @@ func doStats(w http.ResponseWriter, r *http.Request) {
 					WHERE name = $1
 				)
 			) 
-		AND time >= (now() - interval '1 day' * $2);`, pkg, weeksAsNum)
+		AND time >= (now() - interval '7 days' * $2);`, pkg, weeksAsNum)
 	if err != nil {
 		logger.Error("Query failed", zap.String("package", pkg), zap.String("weeks", weeks), zap.String("ip", r.RemoteAddr), zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
