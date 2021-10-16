@@ -261,20 +261,20 @@ func updatePackages() error {
 		}
 
 		row := conn.QueryRow("SELECT id FROM package_version WHERE package_id = $1 AND semver = $2", id, ver)
-		if row.Scan() == sql.ErrNoRows {
+		var verid int
+		if row.Scan(&verid) == sql.ErrNoRows {
 			_, err = conn.Exec("INSERT INTO package_version(package_id, semver) VALUES($1, $2)", id, ver)
 			if err != nil {
 				logger.Error("Error updating package version", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
 				continue
 			}
 			row = conn.QueryRow("SELECT id FROM package_version WHERE package_id = $1 AND semver = $2", id, ver)
-		}
 
-		var verid int
-		err = row.Scan(&verid)
-		if err != nil {
-			logger.Error("Error scanning version id", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
-			continue
+			err = row.Scan(&verid)
+			if err != nil {
+				logger.Error("Error scanning version id", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
+				continue
+			}
 		}
 
 		stats, info, err := getStatsAndInfo(name, ver)
