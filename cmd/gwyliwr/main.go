@@ -50,8 +50,9 @@ type PackageStats struct {
 }
 
 type PackageInfo struct {
-	Version string `json:"version"`
-	Readme  string `json:"readme"`
+	Version     string `json:"version"`
+	Readme      string `json:"readme"`
+	Description string `json:"description"`
 }
 
 type SQSRaw struct {
@@ -295,7 +296,7 @@ func updatePackages() error {
 			stats.Repo.Forks,
 		)
 
-		_, err = conn.Exec("SELECT * FROM update_package_query_vector($1, $2, $3);", id, "todo", info.Readme)
+		_, err = conn.Exec("SELECT * FROM update_package_query_vector($1, $2, $3);", id, info.Description, info.Readme)
 		if err != nil {
 			logger.Error("Error update query vector", zap.String("package", name), zap.String("semver", ver), zap.Error(err))
 			continue
