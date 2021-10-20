@@ -124,7 +124,7 @@ steps:
       branch:
         - master
     
-  - name: Deploy
+  - name: Upload
     image: amazon/aws-cli
     environment:
       AWS_ACCESS_KEY_ID:
@@ -133,11 +133,33 @@ steps:
         from_secret: AWS_SECRET_ACCESS_KEY
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
-      PROSTAGMA_SECRET:
-        from_secret: PROSTAGMA_SECRET
     commands:
       - aws s3api put-object --bucket bradley-chatha --key artifacts/chwilwr_dist.zip --body ./chwilwr.zip
-      - "curl -X POST -H 'Content-Type: application/json' -d '{\"secret\": \"'\"$PROSTAGMA_SECRET\"'\", \"trigger\": \"chwilwr\"}' https://prostagma.chatha.dev/trigger"
     when:
       branch:
         - master
+
+---
+kind: pipeline
+type: docker
+name: nomad
+
+steps:
+  - name: Deploy
+    image: hendrikmaus/nomad-cli
+    environment:
+      NOMAD_ADDR:
+        from_secret: NOMAD_ADDR
+      NOMAD_TOKEN:
+        from_secret: NOMAD_TOKEN
+    commands:
+      - nomad run service.nomad
+      - nomad run batch.nomad
+    when:
+      branch:
+        - master
+
+depends_on:
+  - chwilwr
+  - ymfudwr
+  - Gwyliwr
