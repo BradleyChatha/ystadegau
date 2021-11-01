@@ -17,13 +17,13 @@ Because Go is one of **the** languages for DevOps, so it's more important for me
 
 Because I wanted to give my stalkers a nice confusing surprise :)
 
-* Ystadegau (uh-stah-deh-gah) means "Statistics"
-* Gwyliwr (goo-lee-uhruh) (Welsh 'r' is rolled and pronounced, hence the "ruh" as an approximation) means "Watcher"
+* Ystadegau (uh-stah-deh-gai) means "Statistics"
+* Gwyliwr (gwi-lee-uhruh) (Welsh 'r' is rolled and pronounced, hence the "ruh" as an approximation) means "Watcher"
 * Ymfudwr (um-vuh-duhruh) means "Migrator"
-* Ymfudiadau (um-vuh-dee-ah-dah) means "Migrations"
+* Ymfudiadau (um-vuh-dee-ah-dai) means "Migrations"
 * Chwilwr means "Searcher"
 
-... I think that's correct at least. Still not 100% sure if a leading "u" is pronounced or not.
+... I think that's correct at least.
 
 I kind of wanted to use Japanese, but I don't even know how to get a Japanese input thing on Linux, let alone the pain of having
 to constantly switch into it when debugging O.O
