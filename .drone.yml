@@ -44,7 +44,7 @@ steps:
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
     commands:
-      - aws s3api put-object --bucket bradley-chatha --key artifacts/gwyliwr_dist.zip --body ./gwyliwr.zip
+      - aws s3api put-object --bucket bradley-chatha --key artifacts/gwyliwr_dist.zip --body ./gwyliwr.zip --acl public-read
     when:
       branch:
         - master
@@ -86,7 +86,7 @@ steps:
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
     commands:
-      - aws s3api put-object --bucket bradley-chatha --key artifacts/ymfudwr_dist.zip --body ./ymfudwr.zip
+      - aws s3api put-object --bucket bradley-chatha --key artifacts/ymfudwr_dist.zip --body ./ymfudwr.zip --acl public-read
     when:
       branch:
         - master
@@ -128,7 +128,7 @@ steps:
       AWS_DEFAULT_REGION:
         from_secret: AWS_DEFAULT_REGION
     commands:
-      - aws s3api put-object --bucket bradley-chatha --key artifacts/chwilwr_dist.zip --body ./chwilwr.zip
+      - aws s3api put-object --bucket bradley-chatha --key artifacts/chwilwr_dist.zip --body ./chwilwr.zip --acl public-read
     when:
       branch:
         - master
