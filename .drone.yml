@@ -147,6 +147,7 @@ steps:
       NOMAD_TOKEN:
         from_secret: NOMAD_TOKEN
     commands:
+      - nomad stop ystadegau
       - nomad run service.nomad
       - nomad run batch.nomad
     when:
