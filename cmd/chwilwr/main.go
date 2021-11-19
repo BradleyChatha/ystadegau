@@ -159,6 +159,8 @@ func doStats(w http.ResponseWriter, r *http.Request) {
 					SELECT id FROM package
 					WHERE name = $1
 				)
+				ORDER BY id DESC
+				LIMIT 1
 			) 
 		AND time >= (now() - interval '7 days' * $2);`, pkg, weeksAsNum)
 	if err != nil {
